@@ -177,6 +177,22 @@ GraphicsPipeline PipelineManager::createGraphicsPipeline(
   return pipeline;
 }
 
+GraphicsPipeline PipelineManager::createGraphicsPipeline(
+  const char* shader_program_name, vk::PipelineLayout layout, GraphicsPipeline::CreateInfo info)
+{
+  const PipelineId pipelineId = static_cast<PipelineId>(pipelineIdCounter++);
+  const ShaderProgramId progId = shaderManager.getProgram(shader_program_name);
+
+  pipelines.emplace(
+    pipelineId,
+    create_graphics_pipeline_internal(device, layout, shaderManager.getShaderStages(progId), info));
+  graphicsPipelineParameters.emplace(pipelineId, PipelineParameters{progId, std::move(info)});
+
+  GraphicsPipeline pipeline(this, pipelineId, progId);
+  print_prog_info(shaderManager.getProgramInfo(shader_program_name), shader_program_name);
+  return pipeline;
+}
+
 void PipelineManager::recreate()
 {
   pipelines.clear();
